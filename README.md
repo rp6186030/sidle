@@ -25,6 +25,8 @@ The middle of the trackpad works exactly as before. A gesture starts only when o
 brew install --cask rp6186030/sidle/sidle
 ```
 
+If Homebrew says the tap is untrusted, run `brew trust rp6186030/sidle` and install again.
+
 **Manual:** download `Sidle-x.y.z.zip` from [Releases](https://github.com/rp6186030/sidle/releases/latest), unzip, and move `Sidle.app` to Applications.
 
 ### First launch
