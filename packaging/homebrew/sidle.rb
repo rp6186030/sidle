@@ -11,7 +11,7 @@ cask "sidle" do
   desc "Volume, brightness and media seek on the trackpad edges"
   homepage "https://github.com/rp6186030/sidle"
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: :sonoma
 
   app "Sidle.app"
 
