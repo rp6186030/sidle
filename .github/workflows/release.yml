@@ -1,0 +1,26 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag matches app version
+        run: |
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)
+          [ "v$VERSION" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match Info.plist version $VERSION"; exit 1; }
+      - name: Build
+        run: ./build.sh release --zip
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Sidle-*.zip
+          generate_release_notes: true
+          body: |
+            **Install:** unzip, move Sidle.app to Applications, then run `xattr -dr com.apple.quarantine /Applications/Sidle.app` once (Sidle is not notarized).
+
+            If Sidle is useful to you: https://buymeacoffee.com/rp6186030

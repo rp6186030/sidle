@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidle — volume, brightness and seek on your Mac trackpad edges</title>
+<meta name="description" content="Sidle turns the edges of your Mac trackpad into volume, brightness and media seek controls, and the corners into buttons. Free and open source.">
+<meta property="og:title" content="Sidle — your trackpad has edges. Use them.">
+<meta property="og:description" content="Volume, brightness and media seek on your Mac trackpad edges. Free and open source.">
+<meta property="og:image" content="og.png">
+<link rel="icon" href="icon.png">
+<style>
+  :root {
+    --bg: #101217; --panel: #191c24; --line: #2a2e3a; --text: #eceef3; --muted: #9aa1b2;
+    --accent: #ff9d4d; --accent2: #ffd166; --pad: #3a3f4d;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f6f5f2; --panel: #ffffff; --line: #e2dfd8; --text: #1b1d23; --muted: #626878; --accent: #e8741a; --accent2: #f2a23a; --pad: #d9dbe2; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+  nav { display: flex; align-items: center; gap: 22px; padding: 18px 0; font-size: 15px; }
+  nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); margin-right: auto; }
+  nav .brand img { width: 30px; height: 30px; }
+  nav a.link { color: var(--muted); }
+  @media (max-width: 620px) { nav a.link { display: none; } }
+  .btn { display: inline-block; padding: 12px 20px; border-radius: 12px; font-weight: 600; border: 1px solid var(--line); color: var(--text); background: var(--panel); }
+  .btn.primary { background: linear-gradient(180deg, var(--accent2), var(--accent)); color: #1a1206; border: 0; }
+  .btn:hover { text-decoration: none; filter: brightness(1.06); }
+  header.hero { text-align: center; padding: 56px 0 28px; }
+  h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.04; letter-spacing: -0.03em; margin: 0 0 16px; text-wrap: balance; }
+  h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--muted); font-size: clamp(17px, 2.4vw, 21px); max-width: 640px; margin: 0 auto 26px; text-wrap: pretty; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .fine { color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+  /* demo */
+  .demo { margin: 40px auto 0; max-width: 620px; }
+  .readouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+  .readout { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: left; }
+  .readout b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .readout span { font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 700; }
+  .bar { height: 4px; border-radius: 2px; background: var(--line); margin-top: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); width: 50%; }
+  .trackpad { position: relative; aspect-ratio: 13 / 8; background: var(--pad); border-radius: 22px; border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden; cursor: default; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .zone { position: absolute; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: transparent; transition: background .15s, color .15s; }
+  .zone:hover, .zone.on { background: color-mix(in srgb, var(--accent) 34%, transparent); color: var(--text); }
+  .zone.on { background: linear-gradient(180deg, var(--accent2), var(--accent)); color: #1a1206; }
+  .z-left { left: 0; top: 14%; bottom: 10%; width: 10%; writing-mode: vertical-rl; }
+  .z-right { right: 0; top: 14%; bottom: 10%; width: 10%; writing-mode: vertical-rl; }
+  .z-bottom { left: 0; right: 0; bottom: 0; height: 14%; }
+  .z-tl { left: 0; top: 0; width: 12%; height: 14%; border-bottom-right-radius: 12px; }
+  .z-tr { right: 0; top: 0; width: 12%; height: 14%; border-bottom-left-radius: 12px; }
+  .hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; pointer-events: none; text-align: center; padding: 0 18%; }
+  .dot { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: #fff; opacity: 0; transform: translate(-50%, -50%); pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,.35); transition: opacity .12s; }
+
+  section { padding: 64px 0 0; }
+  h2 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 26px; max-width: 640px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  pre { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font: 14px/1.5 ui-monospace, "SF Mono", Menlo, monospace; margin: 10px 0; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  details { border-bottom: 1px solid var(--line); padding: 14px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { color: var(--muted); margin: 8px 0 0; }
+  .coffee { text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 36px 20px; }
+  footer { color: var(--muted); font-size: 14px; padding: 48px 0 40px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="#"><img src="icon.png" alt="">Sidle</a>
+    <a class="link" href="#gestures">Gestures</a>
+    <a class="link" href="#corners">Corners</a>
+    <a class="link" href="#install">Install</a>
+    <a class="link" href="#faq">FAQ</a>
+    <a class="link" href="https://github.com/rp6186030/sidle">GitHub</a>
+  </nav>
+
+  <header class="hero">
+    <h1>Your trackpad has edges. <em>Use them.</em></h1>
+    <p class="sub">Press an edge and slide for volume, brightness and video scrubbing. Click a corner for anything else. The middle works exactly as before.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/rp6186030/sidle/releases/latest">Download for Mac — free</a>
+      <a class="btn" href="https://github.com/rp6186030/sidle">View source</a>
+    </div>
+    <p class="fine">macOS 14 or later · open source (MIT) · no account, no license key</p>
+
+    <div class="demo" id="try">
+      <div class="readouts">
+        <div class="readout"><b>Brightness</b><span id="r-b">70%</span><div class="bar"><i id="b-b"></i></div></div>
+        <div class="readout"><b>Volume</b><span id="r-v">50%</span><div class="bar"><i id="b-v"></i></div></div>
+        <div class="readout"><b>Seek</b><span id="r-s">0 s</span><div class="bar"><i id="b-s"></i></div></div>
+      </div>
+      <div class="trackpad" id="pad" aria-label="Interactive trackpad demo">
+        <div class="zone z-left" data-z="left">Brightness</div>
+        <div class="zone z-right" data-z="right">Volume</div>
+        <div class="zone z-bottom" data-z="bottom">Seek</div>
+        <div class="zone z-tl" data-z="tl">Mute</div>
+        <div class="zone z-tr" data-z="tr">Play</div>
+        <div class="hint" id="hint">Try it: press an edge and drag. Click a top corner.</div>
+        <div class="dot" id="dot"></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="gestures">
+    <h2>Four controls, zero new habits</h2>
+    <p class="lead">A gesture starts only when one finger rests on an edge and you physically click. Palms, typing and scrolling never trigger it.</p>
+    <div class="grid">
+      <div class="card"><span class="tag">Right edge</span><h3>Volume</h3><p>Slide up or down. Same steps as the volume keys, with the real macOS indicator.</p></div>
+      <div class="card"><span class="tag">Left edge</span><h3>Brightness</h3><p>Slide to dim or brighten the built-in display. Swap sides if you prefer.</p></div>
+      <div class="card"><span class="tag">Bottom edge</span><h3>Seek</h3><p>Slide sideways and release to jump through a video or song, with a live preview.</p></div>
+      <div class="card"><span class="tag">Top corners</span><h3>Buttons</h3><p>One to four clicks each. Mute, launch an app, run a Shortcut, press any hotkey.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tuned to feel like hardware</h2>
+    <div class="grid">
+      <div class="card"><h3>Haptic ticks</h3><p>Every step clicks under your finger through the Force Touch trackpad.</p></div>
+      <div class="card"><h3>Pointer stays put</h3><p>The cursor freezes while you slide and is right where you left it on release.</p></div>
+      <div class="card"><h3>Measured in millimetres</h3><p>A slide feels the same on a MacBook and a Magic Trackpad.</p></div>
+      <div class="card"><h3>Fine control</h3><p>Hold ⇧⌥ while sliding for quarter steps.</p></div>
+    </div>
+  </section>
+
+  <section id="corners">
+    <h2>Corners that do what you want</h2>
+    <p class="lead">Each top corner takes up to four actions, one per click count. A corner with nothing assigned stays a normal part of the trackpad.</p>
+    <div class="grid">
+      <div class="card"><h3>Open or hide an app</h3><p>Click to bring it forward, click again to hide it.</p></div>
+      <div class="card"><h3>Open a link</h3><p>A web page, a folder, a file or an app link.</p></div>
+      <div class="card"><h3>Press a shortcut</h3><p>Screenshot, Mission Control, lock screen, or any hotkey you already use.</p></div>
+      <div class="card"><h3>Run a Shortcut</h3><p>Anything the Shortcuts app can do, from a Focus mode to a script.</p></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <div class="two">
+      <div class="card">
+        <h3>Homebrew</h3>
+        <pre>brew install --cask rp6186030/sidle/sidle</pre>
+        <h3 style="margin-top:14px">Or download</h3>
+        <p><a href="https://github.com/rp6186030/sidle/releases/latest">Get the latest zip</a>, unzip, and move Sidle to Applications.</p>
+      </div>
+      <div class="card">
+        <h3>First launch</h3>
+        <p>Sidle is not notarized, because that needs a paid Apple Developer account. Run this once so macOS will open it:</p>
+        <pre>xattr -dr com.apple.quarantine /Applications/Sidle.app</pre>
+        <p>Or open it, then choose <b>Open Anyway</b> in System Settings → Privacy &amp; Security. Then grant Accessibility when asked.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="coffee">
+      <h2>Free and open source</h2>
+      <p class="lead" style="margin:0 auto 20px">No price, no trial, no license key. If Sidle saves you a reach for the keyboard, a coffee is appreciated.</p>
+      <a class="btn primary" href="https://buymeacoffee.com/rp6186030">☕️ Buy me a coffee</a>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Questions</h2>
+    <details><summary>Why does it need Accessibility?</summary><p>To press the volume and brightness keys for you, press your corner shortcuts, and keep clicks on the edge out of other apps. Sidle never records what you type.</p></details>
+    <details><summary>Does anything leave my Mac?</summary><p>No touch data ever does. The only network request is a once-a-day check of the GitHub release page for a new version.</p></details>
+    <details><summary>Why isn't it on the Mac App Store?</summary><p>Sidle reads finger positions through Apple's private MultitouchSupport framework, which App Store apps may not use. The source is public so you can see exactly what it does.</p></details>
+    <details><summary>Why does macOS warn me when I open it?</summary><p>Notarization requires a paid Apple Developer membership. Sidle is free, so it ships unsigned by Apple. You can read the code and build it yourself with one command.</p></details>
+    <details><summary>Which trackpads work?</summary><p>The built-in Force Touch trackpad and the Magic Trackpad. With two connected, the one you touch is in charge.</p></details>
+    <details><summary>Will it get in the way of normal clicks?</summary><p>Only clicks that land inside the thin edge strip start a gesture, and you can require a modifier key or shrink the strip in Settings.</p></details>
+  </section>
+
+  <footer>Sidle is made by Raj Patel · <a href="https://github.com/rp6186030/sidle">GitHub</a> · <a href="https://github.com/rp6186030/sidle/issues">Report a problem</a></footer>
+</div>
+
+<script>
+(() => {
+  const pad = document.getElementById('pad'), dot = document.getElementById('dot'), hint = document.getElementById('hint');
+  const state = { b: 70, v: 50, s: 0, muted: false, playing: true };
+  let g = null;
+  const el = id => document.getElementById(id);
+  function render() {
+    el('r-b').textContent = Math.round(state.b) + '%'; el('b-b').style.width = state.b + '%';
+    el('r-v').textContent = state.muted ? 'Muted' : Math.round(state.v) + '%'; el('b-v').style.width = (state.muted ? 0 : state.v) + '%';
+    const s = Math.round(state.s);
+    el('r-s').textContent = (s > 0 ? '+' : s < 0 ? '−' : '') + Math.abs(s) + ' s';
+    el('b-s').style.width = Math.min(100, 50 + s / 1.2) + '%';
+  }
+  function pos(e) { const r = pad.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width, h: r.height }; }
+  pad.addEventListener('pointerdown', e => {
+    const z = e.target.closest('.zone'); if (!z) return;
+    const p = pos(e), kind = z.dataset.z;
+    if (kind === 'tl') { state.muted = !state.muted; hint.textContent = state.muted ? 'Muted. Click again to unmute.' : 'Unmuted.'; flash(z); render(); return; }
+    if (kind === 'tr') { state.playing = !state.playing; hint.textContent = state.playing ? 'Playing.' : 'Paused.'; flash(z); return; }
+    g = { kind, zone: z, x: p.x, y: p.y, b: state.b, v: state.v, seek: 0 };
+    z.classList.add('on'); pad.setPointerCapture(e.pointerId);
+    dot.style.opacity = .95; move(p);
+    hint.textContent = kind === 'bottom' ? 'Slide sideways, release to apply.' : 'Slide up or down.';
+  });
+  function move(p) { dot.style.left = p.x + 'px'; dot.style.top = p.y + 'px'; }
+  pad.addEventListener('pointermove', e => {
+    if (!g) return; const p = pos(e); move(p);
+    const dy = (g.y - p.y) / p.h * 130, dx = (p.x - g.x) / p.w * 120;
+    if (g.kind === 'left') state.b = Math.max(0, Math.min(100, Math.round((g.b + dy) / 6.25) * 6.25));
+    if (g.kind === 'right') { state.muted = false; state.v = Math.max(0, Math.min(100, Math.round((g.v + dy) / 6.25) * 6.25)); }
+    if (g.kind === 'bottom') { g.seek = Math.round(dx / 5) * 5; state.s = g.seek; }
+    render();
+  });
+  function end() {
+    if (!g) return; g.zone.classList.remove('on'); dot.style.opacity = 0;
+    if (g.kind === 'bottom') { hint.textContent = g.seek ? 'Jumped ' + (g.seek > 0 ? 'forward ' : 'back ') + Math.abs(g.seek) + ' seconds.' : 'Try it: press an edge and drag.'; state.s = 0; }
+    else hint.textContent = 'In the real app, each step clicks under your finger.';
+    g = null; render();
+  }
+  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end);
+  function flash(z) { z.classList.add('on'); setTimeout(() => z.classList.remove('on'), 180); }
+  render();
+})();
+</script>
+</body>
+</html>
