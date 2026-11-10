@@ -16,4 +16,4 @@ You get the normal macOS indicator and a haptic tick on every step. [GIF]
 
 6/ No account, no license key, MIT licensed.
 Download and source: https://github.com/rp6186030/sidle
-If it saves you a reach for the keyboard: https://buymeacoffee.com/rp6186030
+If it saves you a reach for the keyboard: https://buymeacoffee.com/rp6186060x

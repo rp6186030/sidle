@@ -5,7 +5,7 @@ Volume, brightness and media seek on the edges of your Mac trackpad, and buttons
 Free and open source. No account, no license key.</p>
 <p align="center">
 <a href="https://github.com/rp6186030/sidle/releases/latest">Download</a> ·
-<a href="https://buymeacoffee.com/rp6186030">☕️ Buy me a coffee</a>
+<a href="https://buymeacoffee.com/rp6186060x">☕️ Buy me a coffee</a>
 </p>
 
 | Where you press | What happens |
@@ -66,4 +66,4 @@ Needs Xcode command line tools. See [CONTRIBUTING.md](CONTRIBUTING.md) for the a
 
 ## Licence
 
-MIT. If Sidle saves you a reach for the keyboard, [buy me a coffee](https://buymeacoffee.com/rp6186030).
+MIT. If Sidle saves you a reach for the keyboard, [buy me a coffee](https://buymeacoffee.com/rp6186060x).

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Fixed the Buy Me a Coffee link.
+
 ## 1.0.0
 
 First public release.

@@ -1,8 +1,8 @@
 # Repo and accounts checklist
 
-1. **Buy Me a Coffee**: register the handle used in the code. It is set in one constant, `Links.coffeeHandle` in `Sources/Sidle/Support.swift`, and repeated in `README.md`, `docs/index.html`, `.github/workflows/release.yml` and this folder. If your handle is not `rp6186030`, replace it everywhere:
+1. **Buy Me a Coffee**: register the handle used in the code. It is set in one constant, `Links.coffeeHandle` in `Sources/Sidle/Support.swift`, and repeated in `README.md`, `docs/index.html`, `.github/workflows/release.yml` and this folder. If your handle is not `rp6186060x`, replace it everywhere:
    ```bash
-   grep -rl 'buymeacoffee.com/rp6186030' . --exclude-dir=.build --exclude-dir=dist | xargs sed -i '' 's#buymeacoffee.com/rp6186030#buymeacoffee.com/YOURHANDLE#g'
+   grep -rl 'buymeacoffee.com/rp6186060x' . --exclude-dir=.build --exclude-dir=dist | xargs sed -i '' 's#buymeacoffee.com/rp6186060x#buymeacoffee.com/YOURHANDLE#g'
    ```
 2. **GitHub repo** `rp6186030/sidle`, public.
    - Description: `Volume, brightness and media seek on your Mac trackpad edges. Free and open source.`

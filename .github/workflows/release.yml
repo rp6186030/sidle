@@ -23,4 +23,4 @@ jobs:
           body: |
             **Install:** unzip, move Sidle.app to Applications, then run `xattr -dr com.apple.quarantine /Applications/Sidle.app` once (Sidle is not notarized).
 
-            If Sidle is useful to you: https://buymeacoffee.com/rp6186030
+            If Sidle is useful to you: https://buymeacoffee.com/rp6186060x

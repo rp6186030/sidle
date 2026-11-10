@@ -6,7 +6,7 @@ enum Links {
     static let githubUser = "rp6186030"
     static let repoName = "sidle"
     /// Buy Me a Coffee handle. Change this one constant if the handle differs.
-    static let coffeeHandle = "rp6186030"
+    static let coffeeHandle = "rp6186060x"
 
     static var repo: URL { URL(string: "https://github.com/\(githubUser)/\(repoName)")! }
     static var issues: URL { URL(string: "https://github.com/\(githubUser)/\(repoName)/issues/new/choose")! }
